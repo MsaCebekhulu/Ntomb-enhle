@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Moments</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=Caveat:wght@500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:      #241a14;   /* near-black warm brown, body text */
+    --paper:    #f4ecdd;   /* aged cream paper */
+    --amber:    #c99a4f;   /* warm gold accent */
+    --rose:     #a85a52;   /* muted rose-clay, secondary accent */
+    --fade:     #d8c9ae;   /* faded border / hairline */
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+
+  /* subtle paper grain */
+  body::before{
+    content:"";
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      radial-gradient(rgba(36,26,20,0.035) 1px, transparent 1px);
+    background-size: 3px 3px;
+    opacity:.6;
+  }
+
+  .screen{
+    position:relative; z-index:1;
+    display:none; min-height:100vh; width:100%;
+    flex-direction:column; align-items:center;
+    padding:24px; text-align:center;
+  }
+  .active{display:flex;}
+
+  h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600; font-style:italic;
+    font-size:3.2rem; letter-spacing:0.01em;
+    color:var(--ink); margin:0 0 6px 0;
+  }
+  .eyebrow{
+    font-family:'Inter',sans-serif; font-size:0.72rem;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:var(--rose); margin-bottom:10px;
+  }
+  .lede{ font-size:1rem; font-weight:300; color:#5a4c3f; max-width:420px; line-height:1.6;}
+
+  .primary-btn{
+    margin-top:34px;
+    background:var(--ink); color:var(--paper);
+    border:none; padding:14px 34px; font-size:0.95rem; letter-spacing:0.03em;
+    border-radius:2px; cursor:pointer;
+    font-family:'Inter',sans-serif; font-weight:500;
+    transition:transform .2s ease, background .2s ease;
+  }
+  .primary-btn:hover{ background:var(--rose); transform:translateY(-1px); }
+  .primary-btn:focus-visible, .back-btn:focus-visible{ outline:2px solid var(--amber); outline-offset:3px; }
+
+  .ghost-btn{
+    margin-top:14px; background:transparent; border:none;
+    color:#8a7860; font-size:0.85rem; text-decoration:underline; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+
+  /* ---------- Welcome / gate screens ---------- */
+  #welcome-screen, #broken-screen{ justify-content:center; }
+  .locket{
+    width:64px; height:64px; margin-bottom:22px;
+    border:1.5px solid var(--amber); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cormorant Garamond',serif; font-size:1.6rem; color:var(--amber);
+  }
+
+  /* ---------- Story screen ---------- */
+  #story-screen{ padding-top:70px; padding-bottom:120px; }
+
+  .film-progress{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:var(--amber); z-index:50; transition:width .1s linear;
+  }
+
+  .letter-container{
+    position:relative;
+    background:#fffdf8;
+    width:90%; max-width:620px;
+    padding:48px 42px;
+    margin:10px 0 60px 0;
+    text-align:left; line-height:1.85;
+    border:1px solid var(--fade);
+    box-shadow: 0 18px 40px rgba(36,26,20,0.10);
+  }
+  .letter-container::before{
+    content:"";
+    position:absolute; top:14px; left:14px; right:14px; bottom:14px;
+    border:1px solid var(--fade); pointer-events:none;
+  }
+  .letter-text{
+    font-family:'Cormorant Garamond', serif;
+    font-size:1.28rem; color:#3a2e22; position:relative; z-index:1;
+  }
+  .letter-text p{ margin:0 0 1.1em 0; }
+  .letter-sig{
+    font-family:'Caveat', cursive; font-weight:700;
+    font-size:2.3rem; color:var(--rose); margin-top:10px; display:block;
+  }
+
+  .section-heading{ margin-top:20px; }
+  .section-heading h1{ font-size:2.3rem; }
+
+  /* ---------- Gallery: polaroid scrapbook ---------- */
+  .gallery-container{
+    width:95%; max-width:960px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+    gap:36px 28px;
+    margin-top:36px;
+    position:relative;
+  }
+
+  .photo-frame{
+    background:#fffdf9;
+    padding:12px 12px 46px 12px;
+    box-shadow: 0 8px 18px rgba(36,26,20,0.14);
+    transform:rotate(-2.2deg);
+    transition:transform .35s ease, box-shadow .35s ease;
+    position:relative;
+  }
+  .photo-frame:nth-child(3n+2){ transform:rotate(1.6deg); }
+  .photo-frame:nth-child(3n){ transform:rotate(-1deg); }
+  .photo-frame:hover{ transform:rotate(0deg) scale(1.04); box-shadow:0 16px 30px rgba(36,26,20,0.20); z-index:5; }
+
+  .photo-frame img{
+    width:100%; height:300px; object-fit:cover; object-position:top;
+    background:#eee2cc; display:block; filter:saturate(0.94) contrast(1.02);
+  }
+
+  .washi{
+    position:absolute; top:-10px; left:50%; transform:translateX(-50%) rotate(-1deg);
+    width:70px; height:22px; background:rgba(201,154,79,0.55);
+  }
+
+  .photo-caption{
+    font-family:'Caveat', cursive; font-weight:700;
+    font-size:1.5rem; margin-top:12px; color:#4a3a2c; text-align:center;
+  }
+
+  .back-btn{
+    background:transparent; color:var(--rose);
+    border:1px solid var(--rose); padding:9px 26px;
+    border-radius:20px; cursor:pointer; margin-top:60px;
+    font-family:'Inter',sans-serif; font-size:0.85rem;
+    transition:background .2s ease, color .2s ease;
+  }
+  .back-btn:hover{ background:var(--rose); color:#fff; }
+
+  @media (prefers-reduced-motion: reduce){
+    .photo-frame, .primary-btn{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="film-progress" id="filmProgress"></div>
+
+<div id="welcome-screen" class="screen active">
+  <div class="locket">✦</div>
+  <div class="eyebrow">A small archive</div>
+  <h1>For You</h1>
+  <p class="lede">A few things I never got to say properly, and some of my favourite pictures of you. Want to see?</p>
+  <div class="btn-group">
+    <button class="primary-btn" onclick="showScreen('story-screen')">Open it</button>
+  </div>
+  <button class="ghost-btn" onclick="showScreen('broken-screen')">Not right now</button>
+</div>
+
+<div id="broken-screen" class="screen">
+  <div class="locket">✦</div>
+  <h1 style="font-size:2.6rem;">Whenever you're ready</h1>
+  <p class="lede">No rush at all. It'll be here.</p>
+  <button class="primary-btn" onclick="showScreen('story-screen')">Actually, show me</button>
+</div>
+
+<div id="story-screen" class="screen">
+
+  <div class="section-heading">
+    <div class="eyebrow">A letter</div>
+    <h1>What I Still Mean</h1>
+  </div>
+
+  <div class="letter-container">
+    <div class="letter-text">
+       <p>Hey Ntomb'enhle,</p>
+      <p>
+        I've been thinking about us lately not with regret, but with a lot of warmth.
+        You were one of the best things that happened to me, and I don't want that to
+        get lost just because things changed.
+      </p>
+      <p>
+        I remember the small stuff most: the way you laughed, the way you made
+        ordinary days feel like something worth remembering. I still smile thinking
+        about it.
+      </p>
+      <p>
+        This isn't me asking for anything back. I just wanted you to know that what we
+        had mattered to me, and that I still hold it and you with a lot of care.
+      </p>
+    </div>
+    <span class="letter-sig">— always fondly</span>
+  </div>
+
+  <div class="section-heading">
+    <div class="eyebrow">The archive</div>
+ 
+  </div>
+
+  <div class="gallery-container">
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo1.jpg" alt="Her">
+      <div class="photo-caption">that smile could stop time</div>
+    </div>
+
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo2.jpg" alt="Her">
+      <div class="photo-caption">the most beautiful thing I've seen</div>
+    </div>
+
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo3.jpg" alt="Her">
+      <div class="photo-caption">gorgeous, always</div>
+    </div>
+
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo4.jpg" alt="Her">
+      <div class="photo-caption">that smile, again</div>
+    </div>
+
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo5.jpg" alt="Her">
+      <div class="photo-caption">pure beauty</div>
+    </div>
+
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo6.jpg" alt="Her">
+      <div class="photo-caption">still can't get over this smile</div>
+    </div>
+
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo7.jpg" alt="Her">
+      <div class="photo-caption">stunning, every time</div>
+    </div>
+
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo8.jpg" alt="Her">
+      <div class="photo-caption">lights up every room</div>
+    </div>
+
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo9.jpg" alt="Her">
+      <div class="photo-caption">my favourite smile</div>
+    </div>
+
+    <div class="photo-frame">
+      <div class="washi"></div>
+      <img src="Photo10.jpg" alt="Her">
+      <div class="photo-caption">simply breathtaking</div>
+    </div>
+  </div>
+
+  <button class="back-btn" onclick="showScreen('welcome-screen')">← back to start</button>
+</div>
+
+<script>
+  function showScreen(screenId){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+    window.scrollTo(0,0);
+    document.body.style.overflowY = (screenId === 'story-screen') ? 'auto' : 'hidden';
+    updateFilmProgress();
+  }
+
+  function updateFilmProgress(){
+    const bar = document.getElementById('filmProgress');
+    const story = document.getElementById('story-screen');
+    if(!story.classList.contains('active')){ bar.style.width = '0%'; return; }
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+    bar.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateFilmProgress);
+  document.body.style.overflowY = 'hidden';
+</script>
+
+</body>
+</html>
